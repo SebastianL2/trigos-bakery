@@ -120,7 +120,7 @@ const ChatbotWidget = () => {
       id: 'brownies',
       name: 'Brownies',
       category: 'dulce',
-      description: 'Brownies de chocolate intenso, húmedos y fudgeosos.',
+      description: 'Brownies de chocolate intenso.',
       ingredients: 'Chocolate negro, mantequilla, azúcar, huevos, harina, nueces (opcional)',
       preparation: 'Horneados el tiempo justo para mantener centro húmedo',
       taste: 'Denso, cremoso y con intenso sabor a chocolate que derrite en la boca'
