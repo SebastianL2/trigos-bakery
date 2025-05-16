@@ -5,12 +5,18 @@ interface Message {
   id: number;
   text: string;
   isBot: boolean;
+  suggestions?: string[];
 }
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: 1, text: "¡Hola! Soy el asistente virtual de Trigos. ¿En qué puedo ayudarte hoy?", isBot: true }
+    { 
+      id: 1, 
+      text: "¡Hola! Soy el asistente virtual de Trigos. ¿Tienes algún antojo en particular? Puedo recomendarte algo dulce, salado, o quizás una bebida refrescante.", 
+      isBot: true,
+      suggestions: ["Algo dulce", "Algo salado", "Una bebida"]
+    }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -35,33 +41,25 @@ const ChatbotWidget = () => {
     setInput('');
     setIsTyping(true);
     
-    // Simulate bot response
-    setTimeout(() => {
-      let botResponse = '';
-      
-      if (input.toLowerCase().includes('torta') || input.toLowerCase().includes('pastel')) {
-        botResponse = "¡Claro que sí! Contamos con una variedad de tortas y pasteles. Puedes personalizarlas con el sabor, tamaño y decoración que prefieras. ¿Para qué ocasión la necesitas?";
-      } else if (input.toLowerCase().includes('pan') || input.toLowerCase().includes('panaderia')) {
-        botResponse = "Nuestro pan se hornea fresco todos los días. Tenemos pan blandito, mantequilla, multicereal, campesino y muchas otras variedades. ¿Hay alguno en particular que te interese?";
-      } else if (input.toLowerCase().includes('ubicacion') || input.toLowerCase().includes('direccion') || input.toLowerCase().includes('donde')) {
-        botResponse = "En Sogamoso tenemos dos ubicaciones: nuestra sede principal en Carrera 11 No. 11-04 en el Centro, y otra en el Centro Comercial Meditropoli 1, Local 140. ¿Cuál te queda más cerca?";
-      } else if (input.toLowerCase().includes('hora') || input.toLowerCase().includes('horario')) {
-        botResponse = "Nuestro horario es de lunes a sábado de 7:00 am a 8:00 pm, y los domingos de 8:00 am a 6:00 pm. ¡Te esperamos!";
-      } else if (input.toLowerCase().includes('domicilio') || input.toLowerCase().includes('envio') || input.toLowerCase().includes('entregar')) {
-        botResponse = "¡Sí, tenemos servicio a domicilio! Puedes hacer tu pedido llamando al 312 6548790 o por WhatsApp al 313 2488837. ¿Qué te gustaría ordenar?";
-      } else {
-        botResponse = "Gracias por tu mensaje. ¿En qué más puedo ayudarte con nuestros productos o servicios de panadería?";
-      }
-      
-      const botMessageObj: Message = {
-        id: messages.length + 2,
-        text: botResponse,
-        isBot: true
-      };
-      
-      setMessages(prev => [...prev, botMessageObj]);
-      setIsTyping(false);
-    }, 1500);
+    // Process message and get response
+    import('../utils/chatbotService').then(({ processMessage }) => {
+      processMessage(input).then(response => {
+        const botMessage: Message = {
+          id: messages.length + 2,
+          text: response.text,
+          isBot: true,
+          suggestions: response.suggestions
+        };
+        
+        setMessages(prev => [...prev, botMessage]);
+        setIsTyping(false);
+      });
+    });
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput(suggestion);
+    handleSendMessage({ preventDefault: () => {} } as React.FormEvent);
   };
 
   return (
@@ -85,7 +83,7 @@ const ChatbotWidget = () => {
                 <MessageSquare className="mr-2" size={20} />
                 <div>
                   <h3 className="font-medium">Asistente Trigos</h3>
-                  <p className="text-xs text-white/80">Disponible 24/7</p>
+                  <p className="text-xs text-white/80">¿Qué se te antoja hoy?</p>
                 </div>
               </div>
               <button 
@@ -102,17 +100,34 @@ const ChatbotWidget = () => {
           <div className="h-80 overflow-y-auto p-4 bg-cream/50">
             <div className="space-y-4">
               {messages.map(message => (
-                <div
-                  key={message.id}
-                  className={`max-w-[80%] p-3 rounded-lg ${
-                    message.isBot
-                      ? 'bg-white text-brown-dark mr-auto'
-                      : 'bg-gold/20 text-brown-dark ml-auto'
-                  }`}
-                >
-                  {message.text}
+                <div key={message.id}>
+                  <div
+                    className={`max-w-[80%] p-3 rounded-lg ${
+                      message.isBot
+                        ? 'bg-white text-brown-dark mr-auto'
+                        : 'bg-gold/20 text-brown-dark ml-auto'
+                    }`}
+                  >
+                    {message.text}
+                  </div>
+                  
+                  {/* Suggestions */}
+                  {message.isBot && message.suggestions && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {message.suggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className="bg-white text-brown-dark text-sm px-3 py-1 rounded-full border border-gold/20 hover:bg-gold/10 transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
+              
               {isTyping && (
                 <div className="max-w-[80%] p-3 rounded-lg bg-white text-brown-dark mr-auto">
                   <div className="flex space-x-2">
@@ -132,7 +147,7 @@ const ChatbotWidget = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Escribe tu mensaje..."
+                placeholder="¿Qué se te antoja hoy?"
                 className="w-full p-3 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gold/50"
               />
               <button
