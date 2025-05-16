@@ -1,15 +1,4 @@
-  const generateRecommendation = () => {
-    // Filtrar productos basado en preferencias
-    let filteredProducts = products.filter(product => 
-      !userPreferences.previousDisliked.includes(product.id)
-    );
-    
-    // Filtrar por categoría preferida
-    if (userPreferences.category) {
-      filteredProducts = filteredProducts.filter(p => p.category === userPreferences.category);
-    }
-    
-    // Si prefiere chocolate y estamos en dulcesimport React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
 
 interface Product {
