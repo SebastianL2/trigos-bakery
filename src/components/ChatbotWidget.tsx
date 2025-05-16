@@ -1,4 +1,15 @@
-import React, { useState, useEffect } from 'react';
+  const generateRecommendation = () => {
+    // Filtrar productos basado en preferencias
+    let filteredProducts = products.filter(product => 
+      !userPreferences.previousDisliked.includes(product.id)
+    );
+    
+    // Filtrar por categoría preferida
+    if (userPreferences.category) {
+      filteredProducts = filteredProducts.filter(p => p.category === userPreferences.category);
+    }
+    
+    // Si prefiere chocolate y estamos en dulcesimport React, { useState, useEffect } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
 
 interface Product {
@@ -13,10 +24,12 @@ interface Product {
 }
 
 interface UserPreferences {
+  category: 'dulce' | 'pan' | 'saludable' | null;
   sweetPreference: 'low' | 'medium' | 'high' | null;
-  saltyPreference: 'low' | 'medium' | 'high' | null;
-  temperaturePreference: 'hot' | 'cold' | 'ambient' | null;
-  substancePreference: 'light' | 'medium' | 'heavy' | null;
+  occasion: string | null;
+  chocolatePreference: boolean;
+  fruitPreference: boolean;
+  traditionalPreference: boolean;
   previousLiked: string[];
   previousDisliked: string[];
 }
@@ -42,10 +55,12 @@ const ChatbotWidget = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [userPreferences, setUserPreferences] = useState<UserPreferences>({
+    category: null,
     sweetPreference: null,
-    saltyPreference: null,
-    temperaturePreference: null,
-    substancePreference: null,
+    occasion: null,
+    chocolatePreference: false,
+    fruitPreference: false,
+    traditionalPreference: false,
     previousLiked: [],
     previousDisliked: []
   });
@@ -56,75 +71,129 @@ const ChatbotWidget = () => {
     lastRecommendation: null
   });
 
-  // Simulación de base de datos de productos
+  // Base de datos de productos de Trigos
   const products: Product[] = [
     {
-      id: 'croissant-chocolate',
-      name: 'Croissant de Chocolate',
+      id: 'cheesecake',
+      name: 'Cheesecake',
       category: 'dulce',
-      description: 'Croissant recién horneado relleno de cremoso chocolate.',
-      ingredients: 'Harina de trigo, mantequilla artesanal, chocolate belga, huevos',
-      preparation: 'Laminado tradicional francés, horneado a 190°C',
-      taste: 'Crujiente por fuera, esponjoso por dentro, con chocolate derretido'
+      description: 'Deliciosa tarta de queso cremosa con base de galleta.',
+      ingredients: 'Queso crema, azúcar, huevos, vainilla, galletas María',
+      preparation: 'Horneado al baño María para lograr textura cremosa perfecta',
+      taste: 'Cremoso, suave y dulce, con un equilibrio perfecto entre acidez y dulzura'
     },
     {
-      id: 'empanada-carne',
-      name: 'Empanada de Carne Jugosa',
-      category: 'salado',
-      description: 'Empanada tradicional con relleno de carne especiada.',
-      ingredients: 'Carne de res, cebolla, huevo duro, aceitunas, masa casera',
-      preparation: 'Cocida al horno hasta dorar la masa',
-      taste: 'Masa crocante con relleno jugoso y bien condimentado'
+      id: 'pan-blanco-tradicional',
+      name: 'Pan Blanco Tradicional',
+      category: 'pan',
+      description: 'Pan blanco recién horneado con corteza dorada y miga esponjosa.',
+      ingredients: 'Harina de trigo, levadura, agua, sal, azúcar',
+      preparation: 'Fermentado lentamente y horneado hasta dorar',
+      taste: 'Suave y esponjoso, ideal para cualquier momento del día'
     },
     {
-      id: 'smoothie-mango',
-      name: 'Smoothie de Mango y Maracuyá',
-      category: 'bebida',
-      description: 'Refrescante batido de frutas tropicales.',
-      ingredients: 'Mango fresco, maracuyá, yogurt natural, miel',
-      preparation: 'Licuado con hielo hasta obtener consistencia cremosa',
-      taste: 'Dulce tropical con toque ácido del maracuyá'
-    },
-    {
-      id: 'sandwich-pavo',
-      name: 'Sandwich de Pavo Gourmet',
-      category: 'salado',
-      description: 'Sandwich artesanal con jamón de pavo premium.',
-      ingredients: 'Pan integral, pavo ahumado, queso manchego, tomate, lechuga',
-      preparation: 'Tostado ligeramente en plancha',
-      taste: 'Equilibrado entre lo salado del pavo y la frescura de las verduras'
-    },
-    {
-      id: 'muffin-arandanos',
-      name: 'Muffin de Arándanos',
+      id: 'galletas-chispas-chocolate',
+      name: 'Galletas con Chispas de Chocolate',
       category: 'dulce',
-      description: 'Esponjoso muffin repleto de arándanos frescos.',
-      ingredients: 'Harina integral, arándanos frescos, mantequilla, huevos, azúcar',
-      preparation: 'Horneado a 180°C hasta dorar levemente',
-      taste: 'Dulce y esponjoso con toques ácidos de arándano'
+      description: 'Galletas caseras crujientes repletas de chispas de chocolate.',
+      ingredients: 'Harina, mantequilla, azúcar moreno, huevos, chispas de chocolate',
+      preparation: 'Horneadas hasta dorar ligeramente los bordes',
+      taste: 'Crujientes por fuera, suaves por dentro, con intenso sabor a chocolate'
+    },
+    {
+      id: 'croissants',
+      name: 'Croissants',
+      category: 'pan',
+      description: 'Croissants franceses tradicionales hojaldrados y mantecosos.',
+      ingredients: 'Harina de trigo, mantequilla europea, levadura, leche, sal',
+      preparation: 'Laminado manual tradicional, fermentado y horneado',
+      taste: 'Ligeros, hojaldrados con capas mantecosas que se deshacen en la boca'
+    },
+    {
+      id: 'tortas-personalizadas',
+      name: 'Tortas Personalizadas',
+      category: 'dulce',
+      description: 'Tortas hechas a medida para ocasiones especiales.',
+      ingredients: 'Harina, huevos, mantequilla, azúcar, decoraciones personalizadas',
+      preparation: 'Horneado perfecto con decoración artesanal según tus deseos',
+      taste: 'Esponjosa y húmeda, con sabor elegido especialmente para ti'
+    },
+    {
+      id: 'brownies',
+      name: 'Brownies',
+      category: 'dulce',
+      description: 'Brownies de chocolate intenso, húmedos y fudgeosos.',
+      ingredients: 'Chocolate negro, mantequilla, azúcar, huevos, harina, nueces (opcional)',
+      preparation: 'Horneados el tiempo justo para mantener centro húmedo',
+      taste: 'Denso, cremoso y con intenso sabor a chocolate que derrite en la boca'
+    },
+    {
+      id: 'muffins',
+      name: 'Muffins',
+      category: 'dulce',
+      description: 'Muffins esponjosos con diferentes variedades de sabores.',
+      ingredients: 'Harina, azúcar, huevos, aceite, saborizantes (arándanos, chocolate, limón)',
+      preparation: 'Horneados hasta que al insertar palillo salga limpio',
+      taste: 'Esponjosos y dulces, con rellenos que explotan de sabor'
+    },
+    {
+      id: 'roscas-dulces',
+      name: 'Roscas Dulces',
+      category: 'dulce',
+      description: 'Roscas tradicionales glaseadas, perfectas para compartir.',
+      ingredients: 'Harina, azúcar, huevos, mantequilla, levadura, glaseado dulce',
+      preparation: 'Fermentadas y fritas, cubiertas con glaseado mientras están tibias',
+      taste: 'Dulces y suaves, con glaseado que se derrite deliciosamente'
+    },
+    {
+      id: 'pan-integral',
+      name: 'Pan Integral',
+      category: 'pan',
+      description: 'Pan saludable hecho con harina integral y semillas.',
+      ingredients: 'Harina integral, semillas (sésamo, girasol), levadura, agua, sal',
+      preparation: 'Fermentación lenta para desarrollar sabores complejos',
+      taste: 'Sabor robusto y terroso, textura densa pero tierna'
+    },
+    {
+      id: 'galletas-integrales',
+      name: 'Galletas Integrales',
+      category: 'saludable',
+      description: 'Galletas nutritivas hechas con ingredientes integrales.',
+      ingredients: 'Harina integral, avena, miel, aceite de coco, frutos secos',
+      preparation: 'Horneadas a temperatura moderada para conservar nutrientes',
+      taste: 'Textura un poco rústica, naturalmente dulces y nutritivas'
+    },
+    {
+      id: 'tres-leches',
+      name: 'Tres Leches',
+      category: 'dulce',
+      description: 'Pastel empapado en tres tipos de leche, suave y cremoso.',
+      ingredients: 'Bizcocho, leche condensada, leche evaporada, crema de leche',
+      preparation: 'Bizcocho empapado en mezcla de tres leches, refrigerado',
+      taste: 'Húmedo, dulce y cremoso, con textura que se deshace en el paladar'
     }
   ];
 
   const questions = [
     {
-      id: 'sweet-level',
-      text: '¿Qué tan dulce te gusta lo que comes? ¿Prefieres algo poco dulce, moderadamente dulce, o muy dulce?',
-      suggestions: ['Poco dulce', 'Moderadamente dulce', 'Muy dulce']
-    },
-    {
-      id: 'temperature',
-      text: '¿Prefieres algo caliente, frío, o temperatura ambiente?',
-      suggestions: ['Caliente', 'Frío', 'Temperatura ambiente']
-    },
-    {
-      id: 'substance',
-      text: '¿Quieres algo ligero o más sustancioso para llenarte?',
-      suggestions: ['Algo ligero', 'Moderadamente saciante', 'Muy sustancioso']
-    },
-    {
       id: 'category',
-      text: '¿Tienes antojo de algo dulce, salado, o quizás una bebida refrescante?',
-      suggestions: ['Algo dulce', 'Algo salado', 'Una bebida']
+      text: '¿Qué tipo de antojo tienes hoy? ¿Algo dulce, pan fresco, o tal vez algo más saludable?',
+      suggestions: ['Algo dulce', 'Pan recién horneado', 'Opciones saludables']
+    },
+    {
+      id: 'sweetness-level',
+      text: 'Cuando comes algo dulce, ¿prefieres que sea muy dulce, moderadamente dulce, o apenas dulce?',
+      suggestions: ['Muy dulce', 'Moderadamente dulce', 'Apenas dulce']
+    },
+    {
+      id: 'occasion',
+      text: '¿Para qué ocasión es? ¿Para desayunar, merendar, postre, o algo especial?',
+      suggestions: ['Desayuno', 'Merienda', 'Postre', 'Ocasión especial']
+    },
+    {
+      id: 'preference',
+      text: '¿Tienes alguna preferencia particular? ¿Te gusta el chocolate, prefieres frutas, o algo más tradicional?',
+      suggestions: ['Me encanta el chocolate', 'Prefiero con frutas', 'Algo tradicional']
     }
   ];
 
@@ -147,43 +216,45 @@ const ChatbotWidget = () => {
     
     // Procesar respuestas sobre preferencias
     if (context.stage === 'questioning') {
-      if (context.currentQuestion === 'sweet-level') {
-        if (input.includes('poco')) {
-          setUserPreferences(prev => ({ ...prev, sweetPreference: 'low' }));
-        } else if (input.includes('moderada') || input.includes('normal')) {
-          setUserPreferences(prev => ({ ...prev, sweetPreference: 'medium' }));
-        } else if (input.includes('muy')) {
+      if (context.currentQuestion === 'category') {
+        if (input.includes('dulce')) {
+          setUserPreferences(prev => ({ ...prev, category: 'dulce' }));
+        } else if (input.includes('pan')) {
+          setUserPreferences(prev => ({ ...prev, category: 'pan' }));
+        } else if (input.includes('saludable')) {
+          setUserPreferences(prev => ({ ...prev, category: 'saludable' }));
+        }
+      } else if (context.currentQuestion === 'sweetness-level') {
+        if (input.includes('muy dulce')) {
           setUserPreferences(prev => ({ ...prev, sweetPreference: 'high' }));
+        } else if (input.includes('moderadamente')) {
+          setUserPreferences(prev => ({ ...prev, sweetPreference: 'medium' }));
+        } else if (input.includes('apenas')) {
+          setUserPreferences(prev => ({ ...prev, sweetPreference: 'low' }));
         }
-      } else if (context.currentQuestion === 'temperature') {
-        if (input.includes('caliente')) {
-          setUserPreferences(prev => ({ ...prev, temperaturePreference: 'hot' }));
-        } else if (input.includes('frío')) {
-          setUserPreferences(prev => ({ ...prev, temperaturePreference: 'cold' }));
-        } else {
-          setUserPreferences(prev => ({ ...prev, temperaturePreference: 'ambient' }));
-        }
-      } else if (context.currentQuestion === 'substance') {
-        if (input.includes('ligero')) {
-          setUserPreferences(prev => ({ ...prev, substancePreference: 'light' }));
-        } else if (input.includes('moderada')) {
-          setUserPreferences(prev => ({ ...prev, substancePreference: 'medium' }));
-        } else {
-          setUserPreferences(prev => ({ ...prev, substancePreference: 'heavy' }));
+      } else if (context.currentQuestion === 'occasion') {
+        setUserPreferences(prev => ({ ...prev, occasion: input }));
+      } else if (context.currentQuestion === 'preference') {
+        if (input.includes('chocolate')) {
+          setUserPreferences(prev => ({ ...prev, chocolatePreference: true }));
+        } else if (input.includes('fruta')) {
+          setUserPreferences(prev => ({ ...prev, fruitPreference: true }));
+        } else if (input.includes('tradicional')) {
+          setUserPreferences(prev => ({ ...prev, traditionalPreference: true }));
         }
       }
     }
     
     // Procesar feedback sobre recomendaciones
     if (context.awaitingFeedback && context.lastRecommendation) {
-      if (input.includes('gustó') || input.includes('gusta') || input.includes('me parece bien')) {
+      if (input.includes('gustó') || input.includes('gusta') || input.includes('me parece bien') || input.includes('delicioso')) {
         setUserPreferences(prev => ({
           ...prev,
           previousLiked: [...prev.previousLiked, context.lastRecommendation!.id]
         }));
         return {
-          text: '¡Excelente! Me alegra que te haya gustado. Recordaré esta preferencia para futuras recomendaciones. ¿Te gustaría que te sugiera algo más?',
-          suggestions: ['Sí, otra recomendación', 'No, gracias', 'Algo diferente']
+          text: '¡Excelente! Me alegra que te haya gustado. Recordaré esta preferencia para futuras recomendaciones. ¿Te gustaría que te sugiera algo más de nuestro delicioso menú?',
+          suggestions: ['Sí, otra recomendación', 'No, gracias', 'Algo completamente diferente']
         };
       } else if (input.includes('no era') || input.includes('no me gusta') || input.includes('no era lo que esperaba')) {
         setUserPreferences(prev => ({
@@ -191,8 +262,8 @@ const ChatbotWidget = () => {
           previousDisliked: [...prev.previousDisliked, context.lastRecommendation!.id]
         }));
         return {
-          text: 'Entiendo, gracias por tu feedback. Esto me ayudará a mejorar mis recomendaciones. ¿Podrías decirme qué no te gustó para ajustar mejor mi sugerencia?',
-          suggestions: ['Era muy dulce', 'Era muy salado', 'No era lo que esperaba']
+          text: 'Entiendo, gracias por tu feedback. Esto me ayudará a elegir mejor la próxima vez. ¿Podrías decirme qué no te convenció para ajustar mi siguiente recomendación?',
+          suggestions: ['Era muy dulce', 'No era lo que esperaba', 'Quiero algo diferente']
         };
       }
     }
