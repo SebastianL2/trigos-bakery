@@ -5,7 +5,7 @@ import { MapPin, Phone, Clock } from 'lucide-react';
 const locations = [
   {
     id: 1,
-    name: 'Trigos Centro',
+    name: 'Trigos Sogmoso',
     address: 'Carrera 11 No. 11-04, Centro',
     phone: '312 6548790',
     hours: 'Lun-Sáb: 7:00 - 20:00, Dom: 8:00 - 18:00',
@@ -13,8 +13,8 @@ const locations = [
   },
   {
     id: 2,
-    name: 'Trigos Meditropoli',
-    address: 'Carrera 11 #14-14 C.C. Meditropoli 1 Local 140',
+    name: 'Trigos Duiitama',
+    address: 'Cl. 16 #14-34, Centro-Sur, Duitama, Boyacá0',
     phone: '312 7711553',
     hours: 'Lun-Dom: 8:00 - 20:00',
     mapUrl: 'https://www.google.com/maps?q=Carrera+11+14-14+C.C.+Meditropoli+Sogamoso'
